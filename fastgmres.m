@@ -4,13 +4,13 @@ function [x,resvec,restime] = fastgmres(A,b,tol,maxit,M1,M2,x0,opts)
 % [x,resvec,restime] = fastgmres(A,b,tol,maxit,M1,M2,x0,opts)
 %
 % Solves A*x = b to a relative residual tolerance tol.
-% The maximal number of outer FGMRES iterations is maxit.
+% The maximal number of outer FGMRES iterations is maxit (default 100).
 % Preconditioners M1 and M2 can be provided, effectively solving
 % the problem  M2\(M1\(A*x)) = M2\(M1\b).
 % An initial guess x0 can be provided as well. 
 %
 % The outputs are x (the approximate solution), and two vectors
-% measuring the residual and time-to-residual at each FGMRES iter.
+% measuring the residual and time-to-residual at each FGMRES iterations.
 
 tstart = tic;
 restime = []; % time since tstart when residual is measured
@@ -19,7 +19,7 @@ resvec = [];  % residual norms of flexible GMRES
 if nargin==8 && isfield(opts,'verbose') 
     verbose = opts.verbose;
 else
-    verbose = 2;
+    verbose = 0;
 end
 if nargin==8 && isfield(opts,'maxtime') % timeout in seconds
     maxtime = opts.maxtime;
@@ -72,6 +72,10 @@ if nargin >=5 && ~isempty(M1) && ~isempty(M2)
     r0 = M2\(M1\r0);
 else
     hA = A;
+end
+
+if nargin < 4
+    maxit = 100;
 end
 
 %%
