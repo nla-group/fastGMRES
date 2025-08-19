@@ -4,13 +4,24 @@ function [x,resvec,restime] = fastgmres(A,b,tol,maxit,M1,M2,x0,opts)
 % [x,resvec,restime] = fastgmres(A,b,tol,maxit,M1,M2,x0,opts)
 %
 % Solves A*x = b to a relative residual tolerance tol.
-% The maximal number of outer FGMRES iterations is maxit (default 100).
+% Maximal number of outer FGMRES iterations is maxit (default 100).
 % Preconditioners M1 and M2 can be provided, effectively solving
-% the problem  M2\(M1\(A*x)) = M2\(M1\b).
+% the problem  M2\(M1\(A*x)) = M2\(M1\b). In this case, tol will
+% be the relative target residual norm for the precond. problem.
 % An initial guess x0 can be provided as well. 
 %
-% The outputs are x (the approximate solution), and two vectors
-% measuring the residual and time-to-residual at each FGMRES iterations.
+% Optional input structure 
+%   opts.verbose (0 = turn off info, [1] = some info, 2 = all info)
+%   opts.maxtime (maximal runtime of the outer FGMRES loop, [inf])
+%   opts.t (Arnoldi truncation, default [0])
+%   opts.Sfun (sketching function)
+%   opts.m (maximal number of inner sGMRES iteration, default [500])
+%   opts.s (embedding dimension, default [1000])
+%
+% The outputs are x (the approximate solution), and two vectors 
+% with the absolute residual and runtime after each FGMRES iter.
+%
+% Reference: https://arxiv.org/abs/2506.18408
 
 tstart = tic;
 restime = []; % time since tstart when residual is measured
@@ -19,7 +30,7 @@ resvec = [];  % residual norms of flexible GMRES
 if nargin==8 && isfield(opts,'verbose') 
     verbose = opts.verbose;
 else
-    verbose = 0;
+    verbose = 1;
 end
 if nargin==8 && isfield(opts,'maxtime') % timeout in seconds
     maxtime = opts.maxtime;
@@ -70,8 +81,12 @@ end
 if nargin >=5 && ~isempty(M1) && ~isempty(M2)
     hA = @(x) M2\(M1\(A(x)));
     r0 = M2\(M1\r0);
+    rhs = M2\(M1\b); 
+    nrmrhs = norm(rhs); % norm of precond rhs.
 else
     hA = A;
+    rhs = b;
+    nrmrhs = norm(rhs);
 end
 
 if nargin < 4
@@ -93,15 +108,15 @@ solver = @(rhs) sgmres_inner(hA, rhs, m, cndtol, t, s, Sfun, verbose);
 
 for j = 1:maxit
 
-    if verbose, fprintf('  FGMRES iteration = %d\n',j); end
+    if verbose >=2, fprintf('  FGMRES iteration = %d\n',j); end
 
-    rhs = W(:,j);
-    z = solver(rhs);
+    wvec = W(:,j);
+    z = solver(wvec);
     Z(:,j) = z;      % store
     w = hA(z);       % matvec
 
     if 0 % currently not using inner residual estimator
-        pcres(j) = norm(rhs - w);
+        pcres(j) = norm(wvec - w);
         if j > 1
             gam = H(1:j-1,1:j-1)\(nrmb*eye(j-1,1)); % FOM coeffs of previous iter
             bnd(j) = H(j,j-1)*abs(gam(end))*pcres(j);
@@ -131,19 +146,22 @@ for j = 1:maxit
     % this is a cheaper way to compute the precond residual without x
     resvec(j) = norm(nrmr0*eye(j+1,1) - H(1:j+1,1:j)*y);
 
-    if verbose, fprintf('  FGMRES residual  = %5.3e\n\n',resvec(j)); end
+    if verbose >= 2, fprintf('  FGMRES residual  = %5.3e\n\n',resvec(j)); end
     restime(j) = toc(tstart);
 
-    if resvec(j)/nrmr0 < tol || restime(j) > maxtime
+    if resvec(j)/nrmrhs < 0.99*tol || restime(j) > maxtime
         break
     end
 end
 
-% form solution and validate true precond. residual
+% form solution and validate true (precond.) residual
 x = x0 + Z(:,1:j)*y;
-res_true = norm(r0 - hA(x))/nrmr0;
-if res_true >= tol
-    warning('target residual not reached')
+res_true = norm(rhs - hA(x))/nrmrhs;
+if res_true > tol
+    warning('Target residual NOT reached after %d iterations: %5.3e > %5.3e \n         Consider increasing maxit or restart with x as initial guess.',j,res_true,tol);
+end
+if verbose && res_true <= tol
+    fprintf('fastgmres reached target residual after %d iterations: %5.3e <= %5.3e \n',j,res_true,tol);
 end
 
 end
@@ -161,10 +179,10 @@ SV = zeros(s,m+1);
 SV(:,1) = hS(V(:,1));
 Sb = hS(b);
 Q = []; R = [];
-if verbose, fprintf('  running sgmres '); end
+if verbose >= 2, fprintf('  running sgmres '); end
 for j = 1:m
 
-    if verbose, fprintf('.'); end
+    if verbose >= 2, fprintf('.'); end
     w = A(v);
     SAV(:,j) = hS(w);
     %[Q,R] = qr(SAV(:,1:j),0);
@@ -186,7 +204,7 @@ for j = 1:m
     V(:,j+1) = v;
 
 end
-if verbose, fprintf('\n'); end
+if verbose >= 2, fprintf('\n'); end
 x = V(:,1:length(y))*y;
 end % sgmres_inner
 
