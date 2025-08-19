@@ -1,7 +1,7 @@
 # fastGMRES
 Flexible and sketched GMRES with truncated Arnoldi
 
-These are the file accompanying the paper https://arxiv.org/abs/2506.18408
+These are the MATLAB files accompanying the paper https://arxiv.org/abs/2506.18408
 
 Basic usage example (requires the matrix [vas_stokes_1M](https://sparse.tamu.edu/VLSI/vas_stokes_1M)):
 
