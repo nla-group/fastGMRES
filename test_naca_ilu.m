@@ -123,5 +123,5 @@ tol = 1e-13;
 semilogy(timevec(2:end), Rres_mdr(2:end),'k-','LineWidth',2)
 legend('fastGMRES($t = 0$)','fastGMRES($t = 1$)','fastGMRES($t = 2$)','fastGMRES($t = 3$)','RGS-GMRES-MDR(40,20)','Location','northeast','interpreter','latex','NumColumns',1,'Box','off')
 xlim([0,12])
-set(gca,'TickLabelInterpreter','latex','FontSize',18) % JP: I changed font-size in legend and axes
+set(gca,'TickLabelInterpreter','latex','FontSize',18) 
 mypdf('naca_ilu_time',1,0.52)

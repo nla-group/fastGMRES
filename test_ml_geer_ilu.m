@@ -96,7 +96,7 @@ ylabel('residual norm','interpreter','latex')
 legend('fastGMRES($t = 0$)','fastGMRES($t = 1$)','fastGMRES($t = 2$)','fastGMRES($t = 3$)','Location','northeast','interpreter','latex','NumColumns',1,'Box','off')
 title('ML\_Geer with ILU preconditioner','interpreter','latex')
 xlim([0,1200])
-set(gca,'TickLabelInterpreter','latex','FontSize',18) % JP: I changed font-size in legend and axes
+set(gca,'TickLabelInterpreter','latex','FontSize',18) 
 mypdf('ml_geer_ilu_time',1,0.5)
 
 %% Two-level

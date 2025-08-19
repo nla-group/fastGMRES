@@ -117,7 +117,7 @@ addpath('other_solvers/RandomizedGMRES/example2')
 % 
 
 tol = 1e-8;
-[x,Rres_mdr40,Riter_mdr40,timevec40] = RGS_GMRES_mdr(A,b,tol,40,20,1000,[],[]); % JP: I changed it from 800 to 1200 on line 46
+[x,Rres_mdr40,Riter_mdr40,timevec40] = RGS_GMRES_mdr(A,b,tol,40,20,1000,[],[]); 
 semilogy(timevec40(2:end), Rres_mdr40(2:end),'k-','LineWidth',2)
 legend('fastGMRES($t = 0$)','fastGMRES($t = 1$)','fastGMRES($t = 2$)','fastGMRES($t = 3$)','RGS-GMRES-MDR(40,20)','Location','northeast','interpreter','latex')
 
@@ -126,5 +126,5 @@ legend('fastGMRES($t = 0$)','fastGMRES($t = 1$)','fastGMRES($t = 2$)','fastGMRES
 semilogy(timevec100(2:end), Rres_mdr100(2:end),'k:','LineWidth',2)
 legend('fastGMRES($t = 0$)','fastGMRES($t = 1$)','fastGMRES($t = 2$)','fastGMRES($t = 3$)','RGS-GMRES-MDR(40,20)','RGS-GMRES-MDR(100,20)','Location','northeast','interpreter','latex','NumColumns',1,'Box','off')
 xlim([0,250])
-set(gca,'TickLabelInterpreter','latex','FontSize',18) % JP: I changed font-size in legend and axes
+set(gca,'TickLabelInterpreter','latex','FontSize',18) 
 mypdf('naca_noilu_time',1,0.52)
