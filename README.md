@@ -1,5 +1,6 @@
-# fastGMRES
-Flexible and sketched GMRES with truncated Arnoldi
+# fastGMRES [![Open in MATLAB Online](https://www.mathworks.com/images/responsive/global/open-in-matlab-online.svg)](https://matlab.mathworks.com/open/github/v1?repo=nla-group/fastgmres)
+
+Flexible and sketched GMRES with truncated Arnoldi 
 
 These are the MATLAB files accompanying the paper https://arxiv.org/abs/2506.18408
 
