@@ -1,7 +1,7 @@
 function mypdf(fname,r,s)
 
-disp('mypdf disabled');
-return
+%disp('mypdf disabled');
+%return
 
 if nargin < 2
     r = .6; % height/width ratio
@@ -15,6 +15,7 @@ end
 set(gcf,'PaperPositionMode','auto');
 set(gcf,'PaperSize',s*[13,r*13]);
 set(gcf,'PaperPosition',s*[0,0,13,r*13]);
+set(gcf,'Renderer','painters')
 print(gcf,'-dpdf', ['fig/' fname]);
 %print(gcf,'-depsc2', ['fig/' fname]);
 saveas(gcf,['fig/' fname '.fig'])

@@ -37,6 +37,7 @@ solver = @(rhs) sgmres(A,rhs,500,1e15,5);
 
 tstart = tic;
 TIME_FGMRES = [];
+rng('default')
 
 for j = 1:maxit
 
@@ -91,6 +92,7 @@ shg
 %%
 tstart = tic;
 TIME_FFOM = [];
+rng('default')
 
 for j = 1:maxit
 
@@ -156,7 +158,7 @@ semilogy(REST,'-x','LineWidth',2)
 semilogy(bnd,'k--','LineWidth',2)
 xlabel('outer iteration $j$','interpreter','latex')
 ylabel('residual norm','interpreter','latex')
-ylim([1e-13,1e4]), shg
+ylim([1e-14,1e4]), shg
 legend('FGMRES with sGMRES($10^{15}$)','FFOM with sGMRES($10^{15}$)','restarted sGMRES($10^{15}$)','FGMRES bound','Location','southwest','interpreter','latex','NumColumns',1,'Box','off')
 set(gca,'TickLabelInterpreter','latex')
 mypdf('stokes_t5_res',0.6,1.0)
@@ -169,7 +171,7 @@ semilogy(TIME_REST,REST,'-x','LineWidth',2)
 xlabel('time in seconds','interpreter','latex')
 ylabel('residual norm','interpreter','latex')
 xlim([0,700])
-ylim([1e-12,1e4]), shg
+ylim([5e-11,1e4]), shg
 legend('FGMRES with sGMRES($10^{15}$)','FFOM with sGMRES($10^{15}$)','restarted sGMRES($10^{15}$)','Location','southwest','interpreter','latex')
 set(gca,'TickLabelInterpreter','latex')
 mypdf('stokes_t5_time',0.6,1.0)

@@ -1,5 +1,4 @@
-% Demonstration of the FGMRES residual bound.
-% Using GMRES(100) as the inner solver.
+% Demonstration of FGMRES deflation effect.
 
 mydefaults
 clear all
@@ -7,10 +6,11 @@ close all
 
 rng('default')
 N = 1000;
-A = randn(N) + 30*eye(N); 
+%A = randn(N) + 30*eye(N); 
+A = diag(linspace(1,N,N));
 b = randn(N,1); b = b/norm(b);
 
-maxit = 15;
+maxit = 70;
 W = zeros(N,maxit+1);
 Z = zeros(N,maxit);
 H = zeros(maxit+1,maxit);
@@ -19,7 +19,7 @@ W(:,1) = b/nrmb;
 FGMRES = []; % residuals of flexible GMRES
 FFOM = [];   % residuals of flexible FOM
 
-solver = @(rhs) gmres(A,rhs,[],1e-14,100);
+solver = @(rhs) gmres(A,rhs,[],1e-14,5);
 x = 0*b;    % initial guess
 
 rgam = [0];  % gamma from recursive bound
@@ -44,10 +44,12 @@ for j = 1:maxit
     rgam(j+1) = pcres(j)/sqrt(1-rgam(j)^2);
     rbnd(j+1) = rgam(j+1)*rbnd(j);
 
-
-    for i = 1:j
-        H(i,j) = W(:,i)'*w;
-        w = w - W(:,i)*H(i,j);
+    for reo = 0:1
+        for i = 1:j
+            h = W(:,i)'*w;
+            H(i,j) = H(i,j) + h;
+            w = w - W(:,i)*h;
+        end
     end
     % CGS
     %H(1:j,j) = W(:,1:j)'*w;
@@ -72,6 +74,8 @@ for j = 1:maxit
 
 end
 
+
+
 %% restarted GMRES
 x = zeros(N,1); r = b - A*x;
 for j = 1:maxit
@@ -84,15 +88,38 @@ end
 
 %%
 figure
-semilogy(FGMRES,'-o','LineWidth',2), hold on
-semilogy(FFOM,'-*','LineWidth',2)
-semilogy(REST,'-x','LineWidth',2)
-semilogy(bnd,'k--','LineWidth',2)
-semilogy(real(rbnd(2:end)),'-m+','LineWidth',2) % was k:
-xlabel('outer iteration $j$','interpreter','latex')
-ylabel('residual norm','interpreter','latex')
-ylim([1e-7,1]), shg
-legend('FGMRES','FFOM','GMRES(100)','FGMRES bound (2.2)','recursive bound (2.3)','Location','southwest','interpreter','latex','NumColumns',1,'Box','off')
-set(gca,'TickLabelInterpreter','latex')
-mypdf('fgmres_bnd',0.6,1.0)
+semilogy(FGMRES); 
+hold on
+semilogy(REST)
+xlabel('outer iteration $j$','interpreter','latex','fontsize',18)
+ylabel('residual norm','interpreter','latex','fontsize',18)
+legend('FGMRES-GMRES(5)','GMRES(5)','Location','southwest','interpreter','latex','NumColumns',1,'Box','off')
+lgd = legend('show'); lgd.FontSize = 18;
+axis([0,maxit,1e-16,1])
+set(gca,'TickLabelInterpreter','latex','fontsize',18)
+mypdf('fgmres_deflation1',1,0.5)
 
+%%
+figure
+%plot(eig(full(A))+eps*1i,'ko')
+for j = 1:maxit
+    Aj = pinv(Z(:,1:j))*(A*Z(:,1:j));
+    %Am = W'*(A*W);
+    ritz = eig(Aj);
+    dist = abs(ritz - round(ritz));
+    ind1 = find(dist < 1e-3);
+    ind2 = find(1e-3 <= dist & dist < 1e-2);
+    ind3 = find(1e-2 <= dist & dist < 1e-1);
+    ind4 = find(1e-1 <= dist);
+    if ~isempty(ind1), plot(j,ritz(ind1),'r.'); end
+    if ~isempty(ind2), plot(j,ritz(ind2),'y.'); end
+    if ~isempty(ind3), plot(j,ritz(ind3),'g.'); end
+    if ~isempty(ind4), plot(j,ritz(ind4),'b.'); end
+    hold on
+end
+axis tight
+ylim([0 200])
+xlabel('outer iteration $j$','interpreter','latex','fontsize',18)
+ylabel('order $j$ Ritz values','interpreter','latex','fontsize',18)
+set(gca,'TickLabelInterpreter','latex','fontsize',18)
+mypdf('fgmres_deflation2',1,0.5)
